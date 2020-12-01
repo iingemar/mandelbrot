@@ -1,0 +1,126 @@
+
+
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" 
+"http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title>Mandelbrot fractal</title>
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.4.4/jquery.min.js"></script>
+    <style type="text/css">
+        body {
+            background-color: #000;
+            overflow: hidden;
+            margin: 0;
+        }
+        #output {
+            color: #0066CC;
+            font-family: Monospace;
+            font-size: 13px;
+            text-align: left;
+            left: 5px;
+            height: 60px;                            
+            position: absolute;
+            top: 5px;
+            width: 300px;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="canvas"></canvas>
+
+    <div id="output">Click screen for Mandelbrot. ~5 secs</div>
+    <script type="text/javascript">
+        // Get the current computed width for browser window
+        var WIDTH = $(window).width();
+        var HEIGHT = $(window).height();
+        $('#canvas').attr({
+            width: HEIGHT,
+            height: HEIGHT
+        });
+        var canvas = document.getElementById("canvas");
+        var ctx = canvas.getContext("2d");
+        
+        var draw = function draw(){
+            var start = new Date();
+            // det reella talplanets storlek
+            var reella_x0 = -2;
+            var reella_x1 = 0.5;
+            var reella_y0 = -1.25;
+            var reella_y1 = 1.25; 
+            // ritytans storlek
+            var canvas_height = canvas.height;
+            var canvas_width = canvas.width;
+            var x0 = canvas_height;
+            var y0 = canvas_width;
+            // variabler som kommer att skapas massor av
+            var relativa_x0 = 0;
+            var relativa_y0 = 0;
+            var test_x = 0;
+            var test_y = 0;
+            var r = 0;
+            
+			var dots = 0;
+			
+            // för varje punkt (x0,y0) på canvas ..
+            while(x0--) {
+                y0 = canvas_width;
+                while(y0--) {
+                    // räkna ut dess relativa punkt
+                    relativa_x0 = x0 / canvas_height;
+                    relativa_y0 = y0 / canvas_width;
+                    // kolla sedan vilken punkt det motsvarar i det reella talplanet
+                    test_x = reella_x0 + (relativa_x0 * (reella_x1-reella_x0));
+                    test_y = reella_y0 + (relativa_y0 * (reella_y1-reella_y0));             
+                    // testa sedan den punkten, om den tillhör mandelbrot-mängden
+                    r = iterate(test_x,test_y);
+                    // om max iterationer uppnåtts tillhör punkten mandelbrot-mängden
+                    // och målas svart
+                    if(r==255){
+                        ctx.fillStyle = "rgb(0,0,0)";
+                        ctx.fillRect(x0, y0, 1, 1);
+                    }
+                    // annars färgar vi den beroende på hur många iterationer som gått
+                    else{
+                        ctx.fillStyle = "rgb(0,0,"+r+")";
+                        ctx.fillRect(x0, y0, 1, 1);
+                    }
+					
+					dots++;
+                }
+            }
+            // tar sluttiden
+            var end = new Date();
+            var total = end-start;
+            $('#output').html('Time to generate: '+total/1000+' secs, dots: ' + dots);
+        }
+
+        // here be mathematics
+        var iterate = function iterate(test_x,test_y){
+            var x = 0;
+            var y = 0;
+            var iter = 255;
+            var xTmp = 0;
+            var yTmp = 0;
+            for(var k=0; k<iter; k=k+1) {
+                xTmp = (x*x) - (y*y) + test_x;
+                yTmp = 2*x*y + test_y;
+                x = xTmp;
+                y = yTmp;
+                if((x*x + y*y) > 4){
+                    return k;
+                }
+            }
+            return iter;
+        }
+        
+        var busy = false;
+        $('#canvas').mousedown(function(event) {
+            if(!busy) {
+                draw();
+                busy = true;
+            }
+        });
+    </script>
+</body>
+</html>
